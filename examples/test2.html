@@ -44,7 +44,7 @@
 		<script src="js/libs/stats.min.js"></script>
 
 	<script type="text/javascript" src="../build/physi.js"></script>
-		
+
 
 		<script type="x-shader/x-fragment" id="fragmentShaderDepth">
 
@@ -81,42 +81,40 @@
 		</script>
 
 		<script>
-		
+
 		function showCoords(event) {
-		
+
 			var x = event.clientX;
 			var y = event.clientY;
 			var coords = "X coords: " + x + ", Y coords: " + y;
 			document.getElementById("demo").innerHTML = coords;
-				
+
 			var halfW = document.getElementById('body').offsetWidth/2;
 			var halfH = document.getElementById('body').offsetHeight/2;
-			
-			x = x - halfW;
-			
-			y = y - halfH;
-			
-			//ground.rotation.x = ground.rotation.x - 0.00001*x;
-			ground.rotation.x = (-Math.PI / 2) + 0.001*y;
-			ground.rotation.z = (-Math.PI / 2) + 0.001*x;
-			ground.__dirtyRotation = true;
-				
-				
-}
-		
 
+			x = x - halfW;
+
+			y = y - halfH;
+
+			board.rotation.x = 0.001*y;
+			board.rotation.z = 0.001*x;
+			board.__dirtyRotation = true;
+
+
+}
 
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 			'use strict';
-	
+
 			Physijs.scripts.worker = '../build/physijs_worker.js';
 			Physijs.scripts.ammo = '../build/js/ammo.js';
 
-			
+
 			var container;
 			var camera, scene, renderer;
 			var ground;
+			var board;
 
 			var ballPosition = new THREE.Vector3( 0, 0, 0 );
 			var sphere;
@@ -124,17 +122,59 @@
 			init();
 			animate();
 
+			function buildBoard() {
+				var wall, _wall;
+				wall = new Physijs.BoxMesh(
+					new THREE.BoxGeometry(400, 50, 1000),
+					new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, shininess: 100 } ),
+					0 // mass
+				);
+				wall.position.y = 100;
+				wall.receiveShadow = true;
+
+				_wall = new Physijs.BoxMesh(
+					new THREE.BoxGeometry(400, 50, 1000),
+					new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, shininess: 100 } ),
+					0 // mass
+				);
+				_wall.position.x = 600;
+				_wall.receiveShadow = true;
+				wall.add( _wall );
+
+				_wall = new Physijs.BoxMesh(
+					new THREE.BoxGeometry(200, 50, 400),
+					new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, shininess: 100 } ),
+					0 // mass
+				);
+				_wall.position.x = 300;
+				_wall.position.z = -300;
+				_wall.receiveShadow = true;
+				wall.add( _wall );
+
+				_wall = new Physijs.BoxMesh(
+					new THREE.BoxGeometry(200, 50, 400),
+					new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, shininess: 100 } ),
+					0 // mass
+				);
+				_wall.position.x = 300;
+				_wall.position.z = 300;
+				_wall.receiveShadow = true;
+				wall.add( _wall );
+
+				return wall;
+			}
+
 			function init() {
 
 				var loader = new THREE.TextureLoader();
-			
+
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
 				// scene
 
 				scene = new Physijs.Scene({ reportsize: 1, fixedTimeStep: 1/60 });
-				scene.setGravity(new THREE.Vector3( 0, -100, 0))
+				scene.setGravity(new THREE.Vector3( 0, -100, 0));
 				//scene.fog = new THREE.Fog( 0xcce0ff, 500, 10000 );
 
 				// camera
@@ -173,12 +213,19 @@
 
 				// sphere
 
-				var ballGeo = new THREE.SphereGeometry( 150, 20, 20 );
+				var ballGeo = new THREE.SphereGeometry( 75, 20, 20 );
 				var ballMaterial = new THREE.MeshPhongMaterial( { color: 0xaaaaaa } );
 
 				sphere = new Physijs.SphereMesh( ballGeo, ballMaterial );
 				sphere.castShadow = true;
 				sphere.receiveShadow = true;
+				sphere.position.y=400;
+				sphere.position.x=500;
+				//sphere.applyForce(new THREE.Vector3(0,-1000,0));
+				// sphere.mass = 100;
+				// var rotation_matrix = new THREE.Matrix4().extractRotation(sphere.matrix);
+				// var force_vector = new THREE.Vector3(0, 500, 0).applyMatrix4(rotation_matrix);
+				// sphere.setLinearVelocity(force_vector);
 				scene.add( sphere );
 
 				// ground
@@ -198,27 +245,31 @@
 */
 
 
-		var ground_material = Physijs.createMaterial(
-			new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, map: groundTexture } ),
-			.8, // high friction
-			.4 // low restitution
-		);
-		ground_material.map.wrapS = ground_material.map.wrapT = THREE.RepeatWrapping;
-		ground_material.map.repeat.set( 2.5, 2.5 );
-		
-		// Ground
-		  ground = new Physijs.BoxMesh(
-			new THREE.PlaneGeometry(10000, 10000),
-			ground_material,
-			0 // mass
-		);
-		
-	    ground.position.y = -250;
-		ground.rotation.x =  -Math.PI / 2;
-		ground.__dirtyRotation = true;
-		ground.receiveShadow = true;
-		scene.add( ground );
-		
+				var ground_material = Physijs.createMaterial(
+					new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, map: groundTexture } ),
+					.8, // high friction
+					.4 // low restitution
+				);
+				ground_material.map.wrapS = ground_material.map.wrapT = THREE.RepeatWrapping;
+				ground_material.map.repeat.set( 2.5, 2.5 );
+
+				// Ground
+				ground = new Physijs.BoxMesh(
+					new THREE.PlaneGeometry(500, 500),
+					ground_material,
+					0 // mass
+				);
+
+			  ground.position.y = -250;
+				ground.rotation.x =  -Math.PI / 2;
+				ground.__dirtyRotation = true;
+				ground.receiveShadow = true;
+				scene.add( ground );
+
+
+				//board
+				board = buildBoard();
+				scene.add(board);
 
 				// renderer
 
@@ -234,7 +285,7 @@
 
 				renderer.shadowMap.enabled = true;
 
-				// controls
+				//controls
 				var controls = new THREE.OrbitControls( camera, renderer.domElement );
 				controls.maxPolarAngle = Math.PI * 0.5;
 				controls.minDistance = 1000;
@@ -256,15 +307,15 @@
 				//sphere.applyCentralImpulse(force);
 
 			}
-			
+
 			function togglePins()
 			{
-				
-				
-				
-				
+
+
+
+
 			}
-			
+
 			function onWindowResize() {
 
 				camera.aspect = window.innerWidth / window.innerHeight;
