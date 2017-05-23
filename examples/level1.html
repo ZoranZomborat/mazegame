@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>three.js webgl - cloth simulation</title>
+		<link rel="stylesheet" type="text/css" href="../bootstrap-3.3.7-dist/css/bootstrap.min.css">
+	
+		<title>Marbles - level 1</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
@@ -30,19 +32,32 @@
 
 	<body id='body' onmousemove="showCoords(event);">
 		<div id="info"><br/>
-			<a onclick="wind = !wind;">Wind</a> |
-			<a onclick="rollDie();">ayy lmao</a>|
+			<a href="index.html">Back to menu</a> |
+			<a href="menu.html">Back to level selection</a>|
 			<a onclick="sphere.visible = !sphere.visible;">Ball</a> |
-			<a onclick="togglePins();">Pins</a>
+			<a href="level1.html">Restart</a>
 			<p id="demo"></p>
 		</div>
+		
+		<div class="modal fade" data-keyboard="false" data-backdrop="static" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="exampleModalLabel">Level completed!</h2>
+      </div>
+      <div class="modal-footer">
+        <a style="text-decoration: none;" href="index.html" type="button" class="btn btn-primary">Back to menu</a>
+      </div>
+    </div>
+  </div>
+</div>
 
 		<script src="../build/three.js"></script>
-
+				<script src="../jquery-3.2.1.min.js"></script>
+		<script src="../bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
 		<script src="js/Detector.js"></script>
 		<script src="js/controls/OrbitControls.js"></script>
 		<script src="js/libs/stats.min.js"></script>
-
 	<script type="text/javascript" src="../build/physi.js"></script>
 
 
@@ -81,9 +96,12 @@
 		</script>
 
 		<script>
+		
+		
 
-		function showCoords(event) {
-
+		function showCoords(event) 
+		{
+			
 			var x = event.clientX;
 			var y = event.clientY;
 			var coords = "X coords: " + x + ", Y coords: " + y;
@@ -101,7 +119,7 @@
 			board.__dirtyRotation = true;
 
 
-}
+		}
 
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
@@ -109,7 +127,6 @@
 
 			Physijs.scripts.worker = '../build/physijs_worker.js';
 			Physijs.scripts.ammo = '../build/js/ammo.js';
-
 
 			var container;
 			var camera, scene, renderer;
@@ -124,7 +141,7 @@
 			animate();
 
 			function buildBoard() 
-			{//buildRectangularWithHole(0,0,0);
+			{
 				var wall = RectangularWithMarginLRF(0,300,1500);
 				
 				var piece2 = RectangularWithHole(-100,300,500);
@@ -133,12 +150,9 @@
 				piece2.position.x = -90;
 				piece2.position.z = -750;
 				
+	
+				
 				wall.add(piece2);
-				
-				
-				//wall.position.x = x ;
-				//wall.position.y = y ;
-				//wall.position.z = z;
 				
 				wall.position.x = 0;
 				wall.position.y = 300;
@@ -273,6 +287,8 @@
 
 			function init() {
 
+				$('#myModal').modal({ show: false});
+			
 				var loader = new THREE.TextureLoader();
 
 				container = document.createElement( 'div' );
@@ -339,7 +355,7 @@
 				// sphere
 
 				var ballGeo = new THREE.SphereGeometry( 35, 32, 32 );
-				var ballTexture = loader.load( 'textures/sprite.png' );
+				var ballTexture = loader.load( 'textures/SorinBabii.jpg' );
 				var ballMaterial = new THREE.MeshPhongMaterial( { color: 0xaaaaaa, map: ballTexture } );
 
 
@@ -356,6 +372,7 @@
 				// ground
 
 				var groundTexture = loader.load( 'textures/terrain/grasslight-big.jpg' );
+				var finish = loader.load( 'textures/roughness_map.jpg' );
 				groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
 				groundTexture.repeat.set( 25, 25 );
 				groundTexture.anisotropy = 16;
@@ -369,6 +386,13 @@
 				
 				var transparent_material = Physijs.createMaterial(
 					new THREE.MeshPhongMaterial( {  specular: 0x111111, transparent: true, opacity: 0.7 } ),
+					.8, // high friction
+					.4 // low restitution
+					
+				);
+				
+				var customflag = Physijs.createMaterial(
+					new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, map: finish } ),
 					.8, // high friction
 					.4 // low restitution
 					
@@ -427,21 +451,30 @@
 				
 				var ground5 = new Physijs.BoxMesh(
 					new THREE.BoxGeometry(175, 230,40),
-					ground_material,
+					customflag,
 					0 // mass
 				);
 
-			  ground5.position.y = 220;
-			    ground5.position.z = -200;
+			  ground5.position.y = -450;
+			    ground5.position.z = -220;
 				ground5.receiveShadow = true;
 				
-				ground.add(ground5);
+
+				ground5.rotation.x =  -Math.PI / 2;
+				
+			ground5.addEventListener( 'collision', function( other_object, relative_velocity, relative_rotation, contact_normal ) {
+				
+				$('#myModal').modal('show');
+			});		
+				
+				//ground.add(ground5);
 				
 				var ground6 = new Physijs.BoxMesh(
 					new THREE.BoxGeometry(175, 10,160),
 					transparent_material,
 					0 // mass
 				);
+				
 
 			  ground6.position.y = 100;
 			    ground6.position.z = -100;
@@ -486,9 +519,11 @@
 				ground9.position.x = 90;
 				ground9.receiveShadow = true;
 				
-				ground.add(ground9);	
+				ground.add(ground9);
+					
 				
 				scene.add( ground );
+				scene.add( ground5 );
 
 
 				//board
