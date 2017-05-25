@@ -351,6 +351,14 @@
 		spaneltexture.repeat.set( 2, 2 );
 		var panelmaterial = new THREE.MeshPhongMaterial(
 			{ color: 0xffffff, specular: 0x111111, shininess: 100, map: spaneltexture } );
+
+
+			var foiltexture = loader.load('textures/foil.jpg');
+			foiltexture.wrapS = foiltexture.wrapT = THREE.RepeatWrapping;
+			foiltexture.repeat.set( 2, 2 );
+			var foilmaterial = new THREE.MeshPhongMaterial(
+				{ color: 0xffffff, specular: 0x111111, shininess: 100, map: foiltexture } );
+
 			wmill = new Physijs.BoxMesh(
 				new THREE.BoxGeometry(100, 100, 10),
 				panelmaterial,
@@ -358,6 +366,25 @@
 			);
 			wmill.position.x = 100;
 			wmill.receiveShadow = true;
+
+			_wmill =	new Physijs.BoxMesh(
+				new THREE.BoxGeometry(50, 7, 7),
+				foilmaterial,
+				0 // mass
+			);
+			_wmill.position.x = -75;
+			_wmill.receiveShadow = true;
+			wmill.add(_wmill);
+
+			_wmill =	new Physijs.BoxMesh(
+				new THREE.BoxGeometry(50, 7, 7),
+				foilmaterial,
+				0 // mass
+			);
+			_wmill.position.x = -130;
+			_wmill.receiveShadow = true;
+			wmill.add(_wmill);
+
 			_wmill =	new Physijs.BoxMesh(
 				new THREE.BoxGeometry(100, 100, 10),
 				panelmaterial,
@@ -496,9 +523,16 @@
 
 			asteroid1 = buildAsteroid();
 			asteroid1.position.y=130;
+
+			var foiltexture = loader.load('textures/foil.jpg');
+			foiltexture.wrapS = foiltexture.wrapT = THREE.RepeatWrapping;
+			foiltexture.repeat.set( 1, 1 );
+			var foilmaterial = new THREE.MeshPhongMaterial(
+				{ color: 0xffffff, specular: 0x111111, shininess: 100, map: foiltexture } );
+
 			asteroidPivot1 =new Physijs.BoxMesh(
 				new THREE.SphereGeometry(1,1,1),
-				new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, shininess: 100 } ),
+				foilmaterial,
 				0/*mass*/);
 				asteroidPivot1.add(asteroid1);
 				asteroidPivot1.position.y=150;
@@ -529,7 +563,7 @@
 					windmill = buildWindmill();
 					wmillPivot = new Physijs.CylinderMesh(
 						new THREE.CylinderGeometry(10, 20, 50, 32),
-						new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, shininess: 100 } ),
+						foilmaterial,
 						0 // mass
 					);
 					wmillPivot.position.y=150;
